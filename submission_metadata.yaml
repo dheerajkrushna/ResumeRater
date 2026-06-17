@@ -1,9 +1,12 @@
 # Submission metadata for the India Runs Data & AI Challenge
-team_name: "YOUR_TEAM_NAME"
+team_name: "TLOU"
 members:
-  - name: "YOUR_NAME"
-    email: "YOUR_EMAIL"
-    github: "YOUR_GITHUB_USERNAME"
+  - name: "Dheeraj Krushna"
+    email: "chakrampothala@gmail.com"
+    github: "dheerajkrushna"
+  - name: "Madeeha Anjum"
+    email: "syedanjum7787@gmail.com"
+    github: "syedanjum7787"
 
 approach_summary: |
   Hybrid candidate ranking system combining TF-IDF semantic matching (30%),
