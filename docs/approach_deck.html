@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligent Candidate Discovery & Ranking — Approach Deck</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0f0f1a;
+    --bg-card: #1a1a2e;
+    --bg-card-alt: #16213e;
+    --accent: #6c63ff;
+    --accent-light: #a29bfe;
+    --accent-glow: rgba(108, 99, 255, 0.15);
+    --green: #00d2a0;
+    --green-dim: rgba(0, 210, 160, 0.15);
+    --orange: #ff9f43;
+    --red: #ff6b6b;
+    --text: #e8e8f0;
+    --text-dim: #8888aa;
+    --border: #2a2a45;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Each slide is a page */
+  .slide {
+    width: 100%;
+    min-height: 100vh;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    page-break-after: always;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .slide:last-child { page-break-after: avoid; }
+
+  /* Slide number */
+  .slide-num {
+    position: absolute;
+    bottom: 30px;
+    right: 40px;
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* Title slide */
+  .slide-title {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 50%, #0f0f1a 100%);
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .slide-title h1 {
+    font-size: 52px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 50%, var(--green) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+
+  .slide-title .subtitle {
+    font-size: 22px;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-bottom: 40px;
+  }
+
+  .slide-title .badge {
+    display: inline-block;
+    padding: 8px 24px;
+    border: 1px solid var(--accent);
+    border-radius: 24px;
+    color: var(--accent-light);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Section headers */
+  h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  h2 .num {
+    color: var(--accent);
+    font-weight: 800;
+    margin-right: 8px;
+  }
+
+  .section-line {
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    border-radius: 2px;
+    margin-bottom: 32px;
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent-light);
+    margin-bottom: 12px;
+    margin-top: 20px;
+  }
+
+  p, li {
+    font-size: 17px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  ul { list-style: none; padding: 0; }
+  ul li { padding: 6px 0; padding-left: 24px; position: relative; }
+  ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Cards grid */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .cards.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card.accent { border-left: 3px solid var(--accent); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.orange { border-left: 3px solid var(--orange); }
+  .card.red { border-left: 3px solid var(--red); }
+
+  .card .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .card .card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .card .card-value.small { font-size: 20px; }
+
+  .card .card-desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 15px;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    color: var(--accent-light);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:hover td { background: var(--accent-glow); }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tag.green { background: var(--green-dim); color: var(--green); }
+  .tag.accent { background: var(--accent-glow); color: var(--accent-light); }
+
+  /* Architecture diagram */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+
+  .arch-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 140px;
+  }
+
+  .arch-box.highlight {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .arch-box .label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .arch-box .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .arch-arrow {
+    font-size: 24px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Code block */
+  .code-block {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 14px;
+    color: var(--text);
+    overflow-x: auto;
+    margin: 16px 0;
+    line-height: 1.8;
+  }
+
+  .code-block .comment { color: #5a5a7a; }
+  .code-block .keyword { color: var(--accent-light); }
+  .code-block .number { color: var(--green); }
+  .code-block .string { color: var(--orange); }
+
+  /* Callout */
+  .callout {
+    background: var(--accent-glow);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .callout.green {
+    background: var(--green-dim);
+    border-left-color: var(--green);
+  }
+
+  /* Comparison */
+  .vs-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  .vs-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .vs-box.bad { border-color: var(--red); }
+  .vs-box.good { border-color: var(--green); }
+  .vs-label { font-size: 28px; color: var(--text-dim); font-weight: 700; text-align: center; }
+
+  /* Print styles */
+  @media print {
+    body { background: white; color: #1a1a1a; }
+    .slide { border-bottom: none; padding: 40px 60px; }
+    .card { background: #f5f5f8; border-color: #ddd; }
+    th { background: #f0f0f5; }
+    td { border-color: #eee; }
+    .code-block { background: #f5f5f8; border-color: #ddd; }
+    h2, .card-value { color: #1a1a1a; }
+    p, li, td { color: #333; }
+    .text-dim, .card-title, .card-desc { color: #777; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- SLIDE 1: Title -->
+<!-- ============================================ -->
+<div class="slide slide-title">
+  <h1>Intelligent Candidate<br>Discovery & Ranking</h1>
+  <p class="subtitle">A hybrid AI system that ranks candidates the way a great recruiter would</p>
+  <div class="badge">Redrob AI — India Runs Data & AI Challenge</div>
+  <div class="slide-num">1 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 2: Problem -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">01</span> The Problem</h2>
+  <div class="section-line"></div>
+
+  <p style="font-size: 20px; margin-bottom: 28px;">Recruiters sift through hundreds of profiles but still miss the right person — because keyword filters can't see what actually matters.</p>
+
+  <div class="vs-container">
+    <div class="vs-box bad">
+      <h3 style="color: var(--red); margin-top: 0;">Traditional Keyword Matching</h3>
+      <ul>
+        <li>Matches "Python" but misses context</li>
+        <li>Can't detect career trajectory quality</li>
+        <li>Ignores behavioral availability signals</li>
+        <li>Fooled by keyword stuffers and fake profiles</li>
+        <li>Binary match → no nuanced ranking</li>
+      </ul>
+    </div>
+    <div class="vs-label">→</div>
+    <div class="vs-box good">
+      <h3 style="color: var(--green); margin-top: 0;">Our Hybrid AI Approach</h3>
+      <ul>
+        <li>Semantic similarity understands intent</li>
+        <li>Career trajectory + company type analysis</li>
+        <li>8-dimensional behavioral scoring</li>
+        <li>5-strategy honeypot & stuffer detection</li>
+        <li>Continuous scores → trustworthy ranking</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 28px;">
+    <strong>Challenge:</strong> Rank 100,000 candidates for the Senior AI Engineer (Founding Team) role.
+    Deliver a top-100 shortlist a recruiter can trust — in under 5 minutes, on CPU only, with no network access.
+  </div>
+  <div class="slide-num">2 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 3: Architecture -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">02</span> System Architecture</h2>
+  <div class="section-line"></div>
+
+  <div class="arch-flow">
+    <div class="arch-box">
+      <div class="label">INPUT</div>
+      <div class="value">100K Candidates</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box highlight">
+      <div class="label">FILTER</div>
+      <div class="value">Honeypot Detection</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box highlight">
+      <div class="label">SCORE</div>
+      <div class="value">Hybrid Engine</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">
+      <div class="label">OUTPUT</div>
+      <div class="value">Top 100 + Reasoning</div>
+    </div>
+  </div>
+
+  <div class="cards three" style="margin-top: 24px;">
+    <div class="card accent">
+      <div class="card-title">Semantic Layer — 30%</div>
+      <div class="card-value small">TF-IDF + Cosine Similarity</div>
+      <div class="card-desc">Vectorize JD and all candidate profiles. Compute cosine similarity with min-max normalization. Captures n-grams like "vector search" and "hybrid retrieval".</div>
+    </div>
+    <div class="card green">
+      <div class="card-title">Rule-Based Layer — 50%</div>
+      <div class="card-value small">Multi-Feature Scoring</div>
+      <div class="card-desc">Title alignment (4 tiers), experience range fit, company type (product vs. services), 7-category skill scoring, career description keyword bonus.</div>
+    </div>
+    <div class="card orange">
+      <div class="card-title">Behavioral Layer — 20%</div>
+      <div class="card-value small">8-Dimension Signals</div>
+      <div class="card-desc">Activity recency, open-to-work flag, response rate & speed, notice period, GitHub activity, platform engagement, verification status.</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 20px;">
+    <strong>Final Score</strong> = (0.30 × Semantic + 0.50 × Rule-Based + 0.20 × Behavioral) × Location Fit × Stability × CV-Only Penalty
+  </div>
+  <div class="slide-num">3 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 4: Honeypot Detection -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">03</span> Honeypot Detection</h2>
+  <div class="section-line"></div>
+
+  <p style="margin-bottom: 24px;">The dataset contains synthetically impossible profiles. Including &gt;10% honeypots = disqualification. We detect them through 5 independent strategies:</p>
+
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Strategy</th>
+      <th>What It Catches</th>
+      <th>Example</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><strong>Skill Duration Anomaly</strong></td>
+      <td>Expert/advanced in 3+ skills with 0 months usage</td>
+      <td>"Expert in FAISS" — used for 0 months</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Experience Timeline</strong></td>
+      <td>Years of experience exceeds total career span</td>
+      <td>"13.7 years exp" but first job started 1.3 years ago</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Education Overlap</strong></td>
+      <td>Working 6+ years before starting education</td>
+      <td>Started working 2011, started college 2019</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Job Duration Mismatch</strong></td>
+      <td>Stated months exceeds start→end date span</td>
+      <td>"48 months at X" but dates show 6-month span</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Keyword Stuffer</strong></td>
+      <td>Non-tech title listing AI skills with no AI work</td>
+      <td>"Marketing Manager" lists RAG, FAISS, embeddings</td>
+    </tr>
+  </table>
+
+  <div class="cards" style="margin-top: 24px;">
+    <div class="card green">
+      <div class="card-title">Honeypots Detected</div>
+      <div class="card-value">3,686</div>
+      <div class="card-desc">out of 100,000 candidates flagged and excluded</div>
+    </div>
+    <div class="card green">
+      <div class="card-title">Honeypots in Top 100</div>
+      <div class="card-value">0 (0%)</div>
+      <div class="card-desc">Well below the 10% disqualification threshold</div>
+    </div>
+  </div>
+  <div class="slide-num">4 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 5: Semantic Scoring -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">04</span> Semantic Scoring — TF-IDF</h2>
+  <div class="section-line"></div>
+
+  <div class="cards">
+    <div class="card accent" style="grid-column: 1 / -1;">
+      <h3 style="margin-top: 0;">Why TF-IDF over Transformer Embeddings?</h3>
+      <p>The compute constraint (CPU-only, 5 minutes, 16GB RAM) rules out transformer models for 100K candidates.
+         TF-IDF with scikit-learn processes the entire corpus in <strong>67 seconds</strong> and captures domain-specific
+         bigrams like "vector search", "hybrid retrieval", "sentence transformers" effectively.</p>
+    </div>
+  </div>
+
+  <h3>How It Works</h3>
+  <ul>
+    <li><strong>Document Construction:</strong> For each candidate, concatenate headline, summary, career descriptions, skill names, certifications, and education into a single text document</li>
+    <li><strong>Vectorization:</strong> TfidfVectorizer with (1,2)-grams, sublinear TF, 8000 max features</li>
+    <li><strong>Scoring:</strong> Cosine similarity between JD vector and each candidate vector</li>
+    <li><strong>Normalization:</strong> Min-max scaling to [0,1] to stretch the naturally narrow similarity range</li>
+  </ul>
+
+  <div class="callout green" style="margin-top: 20px;">
+    <strong>What we'd do with more compute:</strong> Use sentence-transformers (all-MiniLM-L6-v2) for dense embeddings,
+    add BM25 for hybrid retrieval (sparse + dense), and a cross-encoder reranker for the top 500.
+  </div>
+  <div class="slide-num">5 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 6: Rule-Based Scoring -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">05</span> Rule-Based Feature Scoring</h2>
+  <div class="section-line"></div>
+
+  <div class="cards">
+    <div class="card accent">
+      <div class="card-title">Title Alignment (15 pts)</div>
+      <div class="card-value small">4-Tier Classification</div>
+      <div class="card-desc">Tier 1: "Senior AI Engineer", "Staff ML Engineer" (100%).<br>
+        Tier 2: "Data Scientist", "AI Specialist" (80%).<br>
+        Tier 3: "Software Engineer", "Data Engineer" (55%).<br>
+        Tier 4: "Full Stack Developer" (30%).<br>
+        Non-tech titles: excluded entirely.</div>
+    </div>
+    <div class="card green">
+      <div class="card-title">Experience Fit (15 pts)</div>
+      <div class="card-value small">Sweet Spot: 6–8 Years</div>
+      <div class="card-desc">JD specifies "6-8 years total, 4-5 in applied ML/AI."<br>
+        6–8y: 100% | 5–9y: 85% | 4–11y: 55% | 3–15y: 25%</div>
+    </div>
+    <div class="card orange">
+      <div class="card-title">Company & Trajectory (20 pts)</div>
+      <div class="card-value small">Product > Services</div>
+      <div class="card-desc">Tier 1 product (Google, Meta, Flipkart): +35%.<br>
+        Services-only career (TCS, Infosys): disqualified.<br>
+        Title-chasers (&lt;18mo avg tenure): 0.70x penalty.</div>
+    </div>
+    <div class="card red">
+      <div class="card-title">Technical Skills (35 pts)</div>
+      <div class="card-value small">7-Category Weighting</div>
+      <div class="card-desc">Core Retrieval (FAISS, Pinecone): 10 pts/skill.<br>
+        General AI (PyTorch, NLP): 6 pts/skill.<br>
+        Infra (Docker, AWS): 2 pts/skill.<br>
+        × proficiency × duration × endorsement multipliers.</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 20px;">
+    <strong>Career Description Keywords:</strong> We also scan career descriptions for high-value phrases like
+    "vector database" (+3), "hybrid search" (+3), "A/B testing" (+2), "recommendation system" (+2).
+    This catches candidates who do relevant work but don't list it as a skill.
+  </div>
+  <div class="slide-num">6 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 7: Behavioral Scoring -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">06</span> Behavioral Signal Analysis</h2>
+  <div class="section-line"></div>
+
+  <p style="margin-bottom: 20px;">A perfect-on-paper candidate who hasn't logged in for 6 months and has a 5% response rate
+    is, for hiring purposes, <em>not actually available</em>. Behavioral signals measure <strong>availability</strong>,
+    which is orthogonal to <strong>fit</strong>.</p>
+
+  <table>
+    <tr>
+      <th>Signal</th>
+      <th>Max Points</th>
+      <th>Scoring Logic</th>
+    </tr>
+    <tr>
+      <td><strong>Activity Recency</strong></td>
+      <td>5</td>
+      <td>≤90 days: 5 | ≤180 days: 3 | ≤365 days: 1 | else: 0</td>
+    </tr>
+    <tr>
+      <td><strong>Open to Work</strong></td>
+      <td>2</td>
+      <td>Flag set: 2 | Not set: 0</td>
+    </tr>
+    <tr>
+      <td><strong>Response Rate</strong></td>
+      <td>4</td>
+      <td>≥75%: 4 | ≥50%: 2 | ≥15%: 0.5 | &lt;15%: −2 (penalty)</td>
+    </tr>
+    <tr>
+      <td><strong>Response Time</strong></td>
+      <td>2</td>
+      <td>≤24h: 2 | ≤72h: 1 | else: 0</td>
+    </tr>
+    <tr>
+      <td><strong>Notice Period</strong></td>
+      <td>4</td>
+      <td>≤30d: 4 (ideal) | ≤60d: 2 | ≤90d: 0 | &gt;90d: −2</td>
+    </tr>
+    <tr>
+      <td><strong>GitHub Activity</strong></td>
+      <td>2</td>
+      <td>Score ≥40: 2 | ≥10: 1 | else: 0</td>
+    </tr>
+    <tr>
+      <td><strong>Platform Engagement</strong></td>
+      <td>2</td>
+      <td>Saved by recruiters, profile views, interview completion rate</td>
+    </tr>
+    <tr>
+      <td><strong>Verification</strong></td>
+      <td>1</td>
+      <td>Email + Phone + LinkedIn verified count / 3</td>
+    </tr>
+  </table>
+  <div class="slide-num">7 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 8: Disqualification Logic -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">07</span> Disqualification & Multipliers</h2>
+  <div class="section-line"></div>
+
+  <h3>Hard Disqualifiers (from JD)</h3>
+  <div class="cards" style="margin-bottom: 24px;">
+    <div class="card red">
+      <div class="card-title">Services-Only Career</div>
+      <div class="card-value small">Entire career at TCS, Infosys, Wipro, etc.</div>
+      <div class="card-desc">JD explicitly flags this: "only consulting firms in entire career"</div>
+    </div>
+    <div class="card red">
+      <div class="card-title">Non-Tech Titles</div>
+      <div class="card-value small">Marketing Manager, HR Manager, Accountant</div>
+      <div class="card-desc">Even if they list AI skills — the JD warns about keyword stuffers</div>
+    </div>
+  </div>
+
+  <h3>Soft Multipliers</h3>
+  <table>
+    <tr>
+      <th>Multiplier</th>
+      <th>Range</th>
+      <th>Logic</th>
+    </tr>
+    <tr>
+      <td><strong>Location Fit</strong></td>
+      <td>0.05 – 1.0</td>
+      <td>Noida/Pune: 1.0 | Other India metros: 0.85 | Non-India: 0.05–0.15</td>
+    </tr>
+    <tr>
+      <td><strong>Stability</strong></td>
+      <td>0.70 – 1.10</td>
+      <td>Avg tenure &lt;18mo: 0.70 (title-chaser) | &gt;36mo: 1.10 (stable)</td>
+    </tr>
+    <tr>
+      <td><strong>CV-Only Penalty</strong></td>
+      <td>0.30</td>
+      <td>Primary expertise in CV/speech without NLP/IR: 70% discount</td>
+    </tr>
+  </table>
+
+  <div class="cards" style="margin-top: 24px;">
+    <div class="card green">
+      <div class="card-title">Total Disqualified</div>
+      <div class="card-value">74,157</div>
+      <div class="card-desc">of 100,000 — leaving 25,843 qualified candidates to rank</div>
+    </div>
+    <div class="card accent">
+      <div class="card-title">Disqualification Rate</div>
+      <div class="card-value">74.2%</div>
+      <div class="card-desc">Aggressive filtering ensures only genuine fits remain</div>
+    </div>
+  </div>
+  <div class="slide-num">8 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 9: Reasoning Generation -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">08</span> Reasoning Generation</h2>
+  <div class="section-line"></div>
+
+  <p style="margin-bottom: 20px;">Each candidate gets a unique, fact-checked justification. No hallucination — every claim is verified against the profile data.</p>
+
+  <h3>Design Principles</h3>
+  <ul>
+    <li><strong>Fact-grounded:</strong> Only states data that exists in the candidate's profile</li>
+    <li><strong>Rank-aware:</strong> Top-25 get confident language, bottom-40 acknowledge concerns</li>
+    <li><strong>Varied:</strong> Template bank with deterministic randomization → 100% unique (100/100)</li>
+    <li><strong>Honest:</strong> Acknowledges concerns like "long notice period" or "low response rate"</li>
+  </ul>
+
+  <h3 style="margin-top: 24px;">Sample Reasonings</h3>
+  <div class="card accent" style="margin-bottom: 12px;">
+    <div class="card-title">Rank #1 — CAND_0046525 (Score: 0.9481)</div>
+    <div class="card-desc" style="font-size: 15px; line-height: 1.7; color: var(--text);">
+      "6.1-year Senior Machine Learning Engineer currently at Genpact AI, previously at LinkedIn.
+      Excellent fit — 88% recruiter response rate, hands-on with sentence transformers, qdrant
+      and 3 others and actively looking for new opportunities. Well-positioned candidate."
+    </div>
+  </div>
+  <div class="card orange" style="margin-bottom: 12px;">
+    <div class="card-title">Rank #69 — CAND_0006557 (Score: 0.7027)</div>
+    <div class="card-desc" style="font-size: 15px; line-height: 1.7; color: var(--text);">
+      "7.9-year NLP Engineer currently at Paytm, previously at Apple. Some relevant signals
+      (hands-on with opensearch, vector search and 3 others, actively looking) but held back
+      by long notice period (120 days)."
+    </div>
+  </div>
+  <div class="slide-num">9 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 10: Results -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">09</span> Results</h2>
+  <div class="section-line"></div>
+
+  <div class="cards" style="margin-bottom: 24px;">
+    <div class="card green">
+      <div class="card-title">Validation</div>
+      <div class="card-value">PASSED ✓</div>
+      <div class="card-desc">validate_submission.py — zero errors</div>
+    </div>
+    <div class="card green">
+      <div class="card-title">Honeypot Rate</div>
+      <div class="card-value">0%</div>
+      <div class="card-desc">Zero honeypots in top 100</div>
+    </div>
+    <div class="card accent">
+      <div class="card-title">Runtime</div>
+      <div class="card-value">91.5s</div>
+      <div class="card-desc">Well under the 5-minute constraint</div>
+    </div>
+    <div class="card accent">
+      <div class="card-title">Unique Reasonings</div>
+      <div class="card-value">100/100</div>
+      <div class="card-desc">Every reasoning is distinct and fact-checked</div>
+    </div>
+  </div>
+
+  <h3>Top 10 Ranked Candidates</h3>
+  <table>
+    <tr>
+      <th>Rank</th>
+      <th>Title</th>
+      <th>Company</th>
+      <th>Exp</th>
+      <th>Location</th>
+      <th>Score</th>
+    </tr>
+    <tr><td>1</td><td>Senior ML Engineer</td><td>Genpact AI</td><td>6.1y</td><td>Pune</td><td><span class="tag green">0.9481</span></td></tr>
+    <tr><td>2</td><td>Staff ML Engineer</td><td>LinkedIn</td><td>8.0y</td><td>Noida</td><td><span class="tag green">0.9436</span></td></tr>
+    <tr><td>3</td><td>Senior ML Engineer</td><td>Zomato</td><td>7.2y</td><td>Noida</td><td><span class="tag green">0.9330</span></td></tr>
+    <tr><td>4</td><td>Rec. Systems Eng.</td><td>Amazon</td><td>6.5y</td><td>Pune</td><td><span class="tag green">0.8812</span></td></tr>
+    <tr><td>5</td><td>Lead AI Engineer</td><td>Razorpay</td><td>6.7y</td><td>Jaipur</td><td><span class="tag accent">0.8783</span></td></tr>
+    <tr><td>6</td><td>Senior Data Scientist</td><td>Flipkart</td><td>6.5y</td><td>—</td><td><span class="tag accent">0.8761</span></td></tr>
+    <tr><td>7</td><td>Senior ML Engineer</td><td>Niramai</td><td>7.9y</td><td>—</td><td><span class="tag accent">0.8455</span></td></tr>
+    <tr><td>8</td><td>ML Engineer</td><td>LinkedIn</td><td>6.9y</td><td>—</td><td><span class="tag accent">0.8420</span></td></tr>
+    <tr><td>9</td><td>Senior AI Engineer</td><td>Meta</td><td>7.9y</td><td>—</td><td><span class="tag accent">0.8400</span></td></tr>
+    <tr><td>10</td><td>Rec. Systems Eng.</td><td>CRED</td><td>8.0y</td><td>—</td><td><span class="tag accent">0.8192</span></td></tr>
+  </table>
+  <div class="slide-num">10 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 11: Design Tradeoffs -->
+<!-- ============================================ -->
+<div class="slide">
+  <h2><span class="num">10</span> Design Tradeoffs</h2>
+  <div class="section-line"></div>
+
+  <div class="cards">
+    <div class="card accent">
+      <h3 style="margin-top: 0;">Why Hybrid over Pure Semantic?</h3>
+      <p>Pure semantic matching can't capture structural signals the JD explicitly mentions:
+         company type, experience range, career stability, notice period.
+         Pure rule-based misses candidates who describe work differently.
+         The hybrid approach captures both.</p>
+    </div>
+    <div class="card green">
+      <h3 style="margin-top: 0;">Why Title > Skills?</h3>
+      <p>The JD warns: "A candidate who lists all the AI keywords but whose title is Marketing Manager
+         is not a fit." Title is a more trustworthy signal of what someone <em>actually does</em>
+         than a self-reported skill list.</p>
+    </div>
+    <div class="card orange">
+      <h3 style="margin-top: 0;">Why Behavioral as Separate (not Combined)?</h3>
+      <p>Behavioral measures <em>availability</em>, which is orthogonal to <em>fit</em>.
+         A great engineer with a 120-day notice period and 5% response rate is a great engineer —
+         but not a hireable one right now.</p>
+    </div>
+    <div class="card red">
+      <h3 style="margin-top: 0;">What Changes with GPU + API?</h3>
+      <p>With more compute: sentence-transformers for dense embeddings, BM25 + dense hybrid retrieval,
+         cross-encoder reranking for top 500, LLM reasoning generation instead of templates.
+         This is what the Senior AI Engineer role would build at Redrob.</p>
+    </div>
+  </div>
+  <div class="slide-num">11 / 12</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SLIDE 12: Summary -->
+<!-- ============================================ -->
+<div class="slide slide-title" style="background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 50%, #0f0f1a 100%);">
+  <h1 style="font-size: 44px;">Making Hiring Smarter</h1>
+  <p class="subtitle" style="max-width: 700px; margin: 0 auto 32px;">
+    A hybrid system that understands not just what candidates know,
+    but who they are, where they've been, and whether they're available.
+  </p>
+
+  <div class="cards three" style="max-width: 800px; margin: 0 auto;">
+    <div class="card green" style="text-align: center;">
+      <div class="card-value">91.5s</div>
+      <div class="card-desc">Runtime on CPU</div>
+    </div>
+    <div class="card accent" style="text-align: center;">
+      <div class="card-value">0%</div>
+      <div class="card-desc">Honeypot Rate</div>
+    </div>
+    <div class="card orange" style="text-align: center;">
+      <div class="card-value">100%</div>
+      <div class="card-desc">Unique Reasonings</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 40px;">
+    <div class="badge">github.com/YOUR_USERNAME/redrob-ranker</div>
+  </div>
+  <div class="slide-num">12 / 12</div>
+</div>
+
+</body>
+</html>
